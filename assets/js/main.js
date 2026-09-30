@@ -5,7 +5,7 @@
 // emails the team instantly. Left empty, the form falls back to opening the
 // visitor's email app addressed to CONTACT_EMAIL.
 // Example: "https://<project-ref>.supabase.co/functions/v1/contact"
-const CONTACT_ENDPOINT = "";
+const CONTACT_ENDPOINT = "https://drqdwpyhdprggaazaeuo.supabase.co/functions/v1/contact";
 // TODO: confirm this is the organisation's real inbox before going live.
 const CONTACT_EMAIL = "info@activezoneoutdoor.cy";
 
@@ -101,12 +101,15 @@ form.addEventListener("submit", async (e) => {
   }
 
   const data = Object.fromEntries(new FormData(form));
-
-  if (!CONTACT_ENDPOINT) {
+  const openEmailApp = () => {
     const subject = `Website enquiry: ${data.topic}`;
     const body = `${data.message}\n\n— ${data.name} (${data.email})`;
     window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     setStatus("Thanks! Your email app should open with your message ready to send.", "ok");
+  };
+
+  if (!CONTACT_ENDPOINT) {
+    openEmailApp();
     return;
   }
 
@@ -124,8 +127,9 @@ form.addEventListener("submit", async (e) => {
     form.reset();
     setStatus("Thank you! Your message has been sent — we'll get back to you soon.", "ok");
   } catch (err) {
-    const reason = err instanceof TypeError ? "Network error." : err.message;
-    setStatus(`${reason} You can also call us on +357 99 541 017.`, "error");
+    // Endpoint unreachable (offline, not deployed yet): fall back to the visitor's email app.
+    if (err instanceof TypeError) openEmailApp();
+    else setStatus(`${err.message} You can also call us on +357 99 541 017.`, "error");
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = "Send message";

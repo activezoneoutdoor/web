@@ -56,7 +56,7 @@ the contact-form settings are new. Contact-form secrets are prefixed
    [Supabase CLI](https://supabase.com/docs/guides/cli), from this repo:
 
    ```sh
-   supabase link --project-ref <moments-project-ref>
+   supabase link --project-ref drqdwpyhdprggaazaeuo
    supabase secrets set \
      CONTACT_TO_EMAIL=info@activezoneoutdoor.cy \
      CONTACT_ALLOWED_ORIGINS=https://www.activezoneoutdoor.cy,https://activezoneoutdoor.cy
@@ -64,8 +64,8 @@ the contact-form settings are new. Contact-form secrets are prefixed
    ```
 
    This deploys only the `contact` function; the Moments functions are untouched.
-3. **Website** — in `assets/js/main.js` set
-   `CONTACT_ENDPOINT = "https://<moments-project-ref>.supabase.co/functions/v1/contact"`.
+3. **Website** — `CONTACT_ENDPOINT` in `assets/js/main.js` already points at
+   `https://drqdwpyhdprggaazaeuo.supabase.co/functions/v1/contact`.
 
 Emails come from the Moments sender address with the display name
 "Active Zone Outdoor website". To use another address, set
@@ -75,8 +75,9 @@ Emails come from the Moments sender address with the display name
 In a separate Supabase project instead, set the Google secrets there too
 (same values as Moments) and use `supabase db push` for the table.
 
-Until `CONTACT_ENDPOINT` is set, the form falls back to opening the visitor's
-email app addressed to `CONTACT_EMAIL`.
+If `CONTACT_ENDPOINT` is empty or the function can't be reached (e.g. not
+deployed yet), the form falls back to opening the visitor's email app
+addressed to `CONTACT_EMAIL`.
 
 Messages are in Supabase → Table Editor → `contact_messages`; `email_sent` /
 `email_error` show whether the notification email went out. Every sent
