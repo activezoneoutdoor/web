@@ -15,9 +15,8 @@ const header = document.querySelector(".site-header");
 const nav = document.getElementById("site-nav");
 const toggle = document.querySelector(".nav-toggle");
 
-// Solid header once the user scrolls past the hero top (always solid on pages without a hero)
-const alwaysSolid = header.classList.contains("is-solid");
-const onScroll = () => header.classList.toggle("is-scrolled", alwaysSolid || window.scrollY > 24);
+// Solid header once the user scrolls past the hero top
+const onScroll = () => header.classList.toggle("is-scrolled", window.scrollY > 24);
 onScroll();
 window.addEventListener("scroll", onScroll, { passive: true });
 
@@ -74,70 +73,67 @@ chips.forEach((chip) => chip.addEventListener("click", () => {
 // "Get involved" cards pre-select the contact topic
 const topic = document.getElementById("topic");
 document.querySelectorAll(".involve-card[data-topic]").forEach((card) => {
-  card.addEventListener("click", () => { if (topic) topic.value = card.dataset.topic; });
+  card.addEventListener("click", () => { topic.value = card.dataset.topic; });
 });
 
 // Contact form
 const form = document.getElementById("contact-form");
-if (form) {
-  const status = form.querySelector(".form-status");
-  const submitBtn = form.querySelector('button[type="submit"]');
+const status = form.querySelector(".form-status");
+const submitBtn = form.querySelector('button[type="submit"]');
 
-  const setStatus = (text, kind) => {
-    status.textContent = text;
-    status.className = `form-status${kind ? ` is-${kind}` : ""}`;
-  };
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    let firstInvalid = null;
-    form.querySelectorAll("[required]").forEach((field) => {
-      const ok = field.checkValidity() && field.value.trim() !== "";
-      field.setAttribute("aria-invalid", String(!ok));
-      if (!ok && !firstInvalid) firstInvalid = field;
-    });
-    if (firstInvalid) {
-      setStatus("Please fill in your name, a valid email and a message.", "error");
-      firstInvalid.focus();
-      return;
-    }
-
-    const data = Object.fromEntries(new FormData(form));
-    const openEmailApp = () => {
-      const subject = `Website enquiry: ${data.topic}`;
-      const body = `${data.message}\n\n— ${data.name} (${data.email})`;
-      window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      setStatus("Thanks! Your email app should open with your message ready to send.", "ok");
-    };
-
-    if (!CONTACT_ENDPOINT) {
-      openEmailApp();
-      return;
-    }
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Sending…";
-    setStatus("", "");
-    try {
-      const res = await fetch(CONTACT_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      const result = await res.json().catch(() => ({}));
-      if (!res.ok || !result.ok) throw new Error(result.error || "Something went wrong.");
-      form.reset();
-      setStatus("Thank you! Your message has been sent — we'll get back to you soon.", "ok");
-    } catch (err) {
-      // Endpoint unreachable (offline, not deployed yet): fall back to the visitor's email app.
-      if (err instanceof TypeError) openEmailApp();
-      else setStatus(`${err.message} You can also call us on +357 99 541 017.`, "error");
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Send message";
-    }
-  });
+function setStatus(text, kind) {
+  status.textContent = text;
+  status.className = `form-status${kind ? ` is-${kind}` : ""}`;
 }
 
-const yearEl = document.getElementById("year");
-if (yearEl) yearEl.textContent = new Date().getFullYear();
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  let firstInvalid = null;
+  form.querySelectorAll("[required]").forEach((field) => {
+    const ok = field.checkValidity() && field.value.trim() !== "";
+    field.setAttribute("aria-invalid", String(!ok));
+    if (!ok && !firstInvalid) firstInvalid = field;
+  });
+  if (firstInvalid) {
+    setStatus("Please fill in your name, a valid email and a message.", "error");
+    firstInvalid.focus();
+    return;
+  }
+
+  const data = Object.fromEntries(new FormData(form));
+  const openEmailApp = () => {
+    const subject = `Website enquiry: ${data.topic}`;
+    const body = `${data.message}\n\n— ${data.name} (${data.email})`;
+    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setStatus("Thanks! Your email app should open with your message ready to send.", "ok");
+  };
+
+  if (!CONTACT_ENDPOINT) {
+    openEmailApp();
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Sending…";
+  setStatus("", "");
+  try {
+    const res = await fetch(CONTACT_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const result = await res.json().catch(() => ({}));
+    if (!res.ok || !result.ok) throw new Error(result.error || "Something went wrong.");
+    form.reset();
+    setStatus("Thank you! Your message has been sent — we'll get back to you soon.", "ok");
+  } catch (err) {
+    // Endpoint unreachable (offline, not deployed yet): fall back to the visitor's email app.
+    if (err instanceof TypeError) openEmailApp();
+    else setStatus(`${err.message} You can also call us on +357 99 541 017.`, "error");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Send message";
+  }
+});
+
+document.getElementById("year").textContent = new Date().getFullYear();
