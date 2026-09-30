@@ -9,5 +9,5 @@
   },
   "fmt": { "lineWidth": 120 },
   "lock": false,
-  "tasks": { "test": "deno test --allow-env" }
+  "tasks": { "test": "deno test --allow-env --allow-read . ../tests" }
 }
