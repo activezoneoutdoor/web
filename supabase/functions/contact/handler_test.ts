@@ -1,10 +1,5 @@
-import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
-import {
-  createHandler,
-  type Deps,
-  renderEmail,
-  type StoredMessage,
-} from "./handler.ts";
+import { assert, assertEquals, assertStringIncludes, assertThrows } from "@std/assert";
+import { contactFrom, createHandler, type Deps, renderEmail, type StoredMessage } from "./handler.ts";
 
 const ORIGIN = "https://www.activezoneoutdoor.cy";
 const valid = {
@@ -132,11 +127,11 @@ Deno.test("rate limit returns 429", async () => {
 
 Deno.test("email failure still succeeds when message was saved", async () => {
   const { handler, marks } = setup({
-    sendEmail: () => Promise.reject(new Error("resend down")),
+    sendEmail: () => Promise.reject(new Error("gmail down")),
   });
   const res = await handler(post(valid));
   assertEquals(res.status, 200);
-  assertEquals(marks, [["id-1", false, "resend down"]]);
+  assertEquals(marks, [["id-1", false, "gmail down"]]);
 });
 
 Deno.test("save failure still succeeds when email was sent", async () => {
@@ -151,7 +146,7 @@ Deno.test("save failure still succeeds when email was sent", async () => {
 Deno.test("both failing returns 500", async () => {
   const { handler } = setup({
     save: () => Promise.reject(new Error("db down")),
-    sendEmail: () => Promise.reject(new Error("resend down")),
+    sendEmail: () => Promise.reject(new Error("gmail down")),
   });
   assertEquals((await handler(post(valid))).status, 500);
 });
@@ -167,4 +162,17 @@ Deno.test("email HTML escapes visitor input", () => {
   assertStringIncludes(html, "&lt;img onerror=1&gt;");
   assert(!html.includes("<img"));
   assertStringIncludes(subject, "Volunteering");
+});
+
+Deno.test("sender reuses EMAIL_FROM's address unless overridden", () => {
+  assertEquals(
+    contactFrom("", "AZO Moments <moments@activezoneoutdoor.cy>"),
+    "Active Zone Outdoor website <moments@activezoneoutdoor.cy>",
+  );
+  assertEquals(
+    contactFrom("", "moments@activezoneoutdoor.cy"),
+    "Active Zone Outdoor website <moments@activezoneoutdoor.cy>",
+  );
+  assertEquals(contactFrom("Web <web@activezoneoutdoor.cy>", "x"), "Web <web@activezoneoutdoor.cy>");
+  assertThrows(() => contactFrom("", ""));
 });

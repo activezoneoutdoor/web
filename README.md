@@ -30,46 +30,62 @@ python3 -m http.server 8000
 Upload the repository contents to any static host (GitHub Pages, Netlify,
 Cloudflare Pages, or the existing web host).
 
-## Contact form (Supabase + Resend)
+## Contact form (Supabase + Google Workspace)
 
 The form sends messages instantly through a Supabase Edge Function. Each
-message is saved in the `contact_messages` table and emailed to the team via
-[Resend](https://resend.com), with *Reply-To* set to the visitor so you can
-answer straight from your inbox. Spam protection: allowed-origin check,
-hidden honeypot field, input validation and max 5 messages per IP per 10 min.
+message is saved in the `contact_messages` table and emailed to the team
+through the Gmail API as the organisation's Google Workspace sender — the same
+setup [Moments](https://github.com/activezoneoutdoor/moments) uses for booking
+emails (`supabase/functions/_shared/gmail.ts` is shared with it). *Reply-To* is
+set to the visitor so you can answer straight from your inbox. Spam
+protection: allowed-origin check, hidden honeypot field, input validation and
+max 5 messages per IP per 10 min.
 
-One-time setup:
+### Setup (reusing the Moments Supabase project)
 
-1. **Resend** — create a free account, verify the `activezoneoutdoor.cy`
-   domain (adds a few DNS records) and create an API key.
-2. **Supabase** — create a free project, then with the
-   [Supabase CLI](https://supabase.com/docs/guides/cli):
+The Moments project already has the Google secrets (`GOOGLE_OAUTH_CLIENT_ID`,
+`GOOGLE_OAUTH_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`, `EMAIL_FROM`), so only
+the contact-form settings are new. Contact-form secrets are prefixed
+`CONTACT_` so they don't change anything in Moments.
+
+1. **Create the table.** In the Moments project's SQL Editor, run
+   `supabase/migrations/20260930000000_contact_messages.sql`. (Use the SQL
+   Editor rather than `supabase db push`: the Moments project's migration
+   history lives in the Moments repo.)
+2. **Set the secrets and deploy** with the
+   [Supabase CLI](https://supabase.com/docs/guides/cli), from this repo:
 
    ```sh
-   supabase login
-   supabase link --project-ref <project-ref>
-   supabase db push                       # creates contact_messages
+   supabase link --project-ref <moments-project-ref>
    supabase secrets set \
-     RESEND_API_KEY=re_xxx \
-     CONTACT_TO_EMAIL=you@activezoneoutdoor.cy \
-     CONTACT_FROM_EMAIL="Active Zone Outdoor <website@activezoneoutdoor.cy>" \
-     ALLOWED_ORIGINS=https://www.activezoneoutdoor.cy,https://activezoneoutdoor.cy
+     CONTACT_TO_EMAIL=info@activezoneoutdoor.cy \
+     CONTACT_ALLOWED_ORIGINS=https://www.activezoneoutdoor.cy,https://activezoneoutdoor.cy
    supabase functions deploy contact
    ```
 
+   This deploys only the `contact` function; the Moments functions are untouched.
 3. **Website** — in `assets/js/main.js` set
-   `CONTACT_ENDPOINT = "https://<project-ref>.supabase.co/functions/v1/contact"`.
+   `CONTACT_ENDPOINT = "https://<moments-project-ref>.supabase.co/functions/v1/contact"`.
+
+Emails come from the Moments sender address with the display name
+"Active Zone Outdoor website". To use another address, set
+`CONTACT_EMAIL_FROM`; it must be the authorised account or one of its Gmail
+"Send mail as" aliases.
+
+In a separate Supabase project instead, set the Google secrets there too
+(same values as Moments) and use `supabase db push` for the table.
 
 Until `CONTACT_ENDPOINT` is set, the form falls back to opening the visitor's
 email app addressed to `CONTACT_EMAIL`.
 
 Messages are in Supabase → Table Editor → `contact_messages`; `email_sent` /
-`email_error` show whether the notification email went out.
+`email_error` show whether the notification email went out. Every sent
+message is also in the sender account's Gmail *Sent* folder.
 
-Run the function's tests with [Deno](https://deno.com):
+Run the function tests with [Deno](https://deno.com):
 
 ```sh
-cd supabase/functions/contact && deno task test
+cd supabase/functions && deno task test
 ```
 
 ## Before going live

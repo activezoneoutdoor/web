@@ -1,9 +1,0 @@
-{
-  "fmt": {
-    "lineWidth": 120
-  },
-  "tasks": {
-    "test": "deno test handler_test.ts"
-  },
-  "lock": false
-}

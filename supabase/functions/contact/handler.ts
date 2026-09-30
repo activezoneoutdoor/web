@@ -1,4 +1,4 @@
-// Contact-form request handling, kept free of Supabase/Resend specifics so it
+// Contact-form request handling, kept free of Supabase/Gmail specifics so it
 // can be unit tested. index.ts wires in the real dependencies.
 
 export const TOPICS = [
@@ -86,16 +86,11 @@ function corsHeaders(
   origin: string | null,
   allowed: string[],
 ): Record<string, string> {
-  const allowOrigin = allowed.length === 0
-    ? "*"
-    : origin && allowed.includes(origin)
-    ? origin
-    : "";
+  const allowOrigin = allowed.length === 0 ? "*" : origin && allowed.includes(origin) ? origin : "";
   return {
     ...(allowOrigin ? { "Access-Control-Allow-Origin": allowOrigin } : {}),
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers":
-      "content-type, authorization, apikey, x-client-info",
+    "Access-Control-Allow-Headers": "content-type, authorization, apikey, x-client-info",
     "Vary": "Origin",
   };
 }
@@ -201,6 +196,17 @@ export function createHandler(deps: Deps) {
   };
 }
 
+/**
+ * The From header. Gmail only sends as the authorised account (or its aliases), so by default this reuses
+ * EMAIL_FROM's address with a website-specific display name.
+ */
+export function contactFrom(override: string, emailFrom: string): string {
+  if (override) return override;
+  const address = emailFrom.match(/<([^>]+)>/)?.[1] ?? emailFrom;
+  if (!address) throw new Error("EMAIL_FROM or CONTACT_EMAIL_FROM must be set");
+  return `Active Zone Outdoor website <${address}>`;
+}
+
 const escapeHtml = (s: string) =>
   s.replace(
     /[&<>"']/g,
@@ -214,12 +220,9 @@ const escapeHtml = (s: string) =>
 export function renderEmail(msg: ContactMessage) {
   return {
     subject: `Website enquiry: ${msg.topic} (from ${msg.name})`,
-    text:
-      `Name: ${msg.name}\nEmail: ${msg.email}\nTopic: ${msg.topic}\n\n${msg.message}\n`,
+    text: `Name: ${msg.name}\nEmail: ${msg.email}\nTopic: ${msg.topic}\n\n${msg.message}\n`,
     html: `<p><strong>Name:</strong> ${escapeHtml(msg.name)}<br>
-<strong>Email:</strong> <a href="mailto:${escapeHtml(msg.email)}">${
-      escapeHtml(msg.email)
-    }</a><br>
+<strong>Email:</strong> <a href="mailto:${escapeHtml(msg.email)}">${escapeHtml(msg.email)}</a><br>
 <strong>Topic:</strong> ${escapeHtml(msg.topic)}</p>
 <p style="white-space:pre-wrap">${escapeHtml(msg.message)}</p>
 <p style="color:#888;font-size:12px">Sent from the contact form on activezoneoutdoor.cy. Reply to this email to answer ${
