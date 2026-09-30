@@ -1,6 +1,11 @@
 // Active Zone Outdoor — site interactions (no dependencies)
 
-// Email that receives contact-form messages.
+// Contact form delivery. With CONTACT_ENDPOINT set, messages go to the
+// Supabase Edge Function (supabase/functions/contact), which stores them and
+// emails the team instantly. Left empty, the form falls back to opening the
+// visitor's email app addressed to CONTACT_EMAIL.
+// Example: "https://<project-ref>.supabase.co/functions/v1/contact"
+const CONTACT_ENDPOINT = "https://drqdwpyhdprggaazaeuo.supabase.co/functions/v1/contact";
 // TODO: confirm this is the organisation's real inbox before going live.
 const CONTACT_EMAIL = "info@activezoneoutdoor.cy";
 
@@ -71,10 +76,17 @@ document.querySelectorAll(".involve-card[data-topic]").forEach((card) => {
   card.addEventListener("click", () => { topic.value = card.dataset.topic; });
 });
 
-// Contact form: validate, then open the visitor's email app with the message
+// Contact form
 const form = document.getElementById("contact-form");
 const status = form.querySelector(".form-status");
-form.addEventListener("submit", (e) => {
+const submitBtn = form.querySelector('button[type="submit"]');
+
+function setStatus(text, kind) {
+  status.textContent = text;
+  status.className = `form-status${kind ? ` is-${kind}` : ""}`;
+}
+
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
   let firstInvalid = null;
   form.querySelectorAll("[required]").forEach((field) => {
@@ -83,17 +95,45 @@ form.addEventListener("submit", (e) => {
     if (!ok && !firstInvalid) firstInvalid = field;
   });
   if (firstInvalid) {
-    status.textContent = "Please fill in your name, a valid email and a message.";
-    status.className = "form-status is-error";
+    setStatus("Please fill in your name, a valid email and a message.", "error");
     firstInvalid.focus();
     return;
   }
-  const data = new FormData(form);
-  const subject = `Website enquiry: ${data.get("topic")}`;
-  const body = `${data.get("message")}\n\n— ${data.get("name")} (${data.get("email")})`;
-  window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  status.textContent = "Thanks! Your email app should open with your message ready to send.";
-  status.className = "form-status is-ok";
+
+  const data = Object.fromEntries(new FormData(form));
+  const openEmailApp = () => {
+    const subject = `Website enquiry: ${data.topic}`;
+    const body = `${data.message}\n\n— ${data.name} (${data.email})`;
+    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setStatus("Thanks! Your email app should open with your message ready to send.", "ok");
+  };
+
+  if (!CONTACT_ENDPOINT) {
+    openEmailApp();
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Sending…";
+  setStatus("", "");
+  try {
+    const res = await fetch(CONTACT_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const result = await res.json().catch(() => ({}));
+    if (!res.ok || !result.ok) throw new Error(result.error || "Something went wrong.");
+    form.reset();
+    setStatus("Thank you! Your message has been sent — we'll get back to you soon.", "ok");
+  } catch (err) {
+    // Endpoint unreachable (offline, not deployed yet): fall back to the visitor's email app.
+    if (err instanceof TypeError) openEmailApp();
+    else setStatus(`${err.message} You can also call us on +357 99 541 017.`, "error");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Send message";
+  }
 });
 
 document.getElementById("year").textContent = new Date().getFullYear();

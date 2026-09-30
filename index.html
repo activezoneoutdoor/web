@@ -3,15 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Active Zone Outdoor — Youth, Sport &amp; Nature in Cyprus</title>
+  <title>Active Zone Outdoor — Learning not confined within four walls</title>
   <meta name="description" content="Active Zone Outdoor is a non-profit youth organisation in Larnaca, Cyprus, connecting young people with better mental health through inclusive outdoor sports, Erasmus+ youth exchanges and volunteering.">
   <meta name="theme-color" content="#0f3d2e">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Active Zone Outdoor — Youth, Sport &amp; Nature in Cyprus">
+  <meta property="og:title" content="Active Zone Outdoor — Learning not confined within four walls">
   <meta property="og:description" content="Inclusive outdoor sports, Erasmus+ youth exchanges and volunteering in Larnaca, Cyprus.">
   <meta property="og:url" content="https://www.activezoneoutdoor.cy/">
+  <meta property="og:image" content="https://www.activezoneoutdoor.cy/assets/img/logo-official-512.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,6 +26,8 @@
     "@type": "NGO",
     "name": "Active Zone Outdoor",
     "url": "https://www.activezoneoutdoor.cy/",
+    "logo": "https://www.activezoneoutdoor.cy/assets/img/logo-official-512.png",
+    "slogan": "Learning not confined within four walls",
     "foundingDate": "2019",
     "telephone": "+35799541017",
     "address": {
@@ -42,7 +46,10 @@
   <header class="site-header" id="top">
     <div class="container nav-wrap">
       <a class="brand" href="#top" aria-label="Active Zone Outdoor home">
-        <img src="assets/img/logo.svg" alt="" width="40" height="40">
+        <picture>
+          <source srcset="assets/img/logo-official-160.webp" type="image/webp">
+          <img class="brand-logo" src="assets/img/logo-official-160.png" alt="" width="48" height="48">
+        </picture>
         <span>Active Zone <strong>Outdoor</strong></span>
       </a>
 
@@ -91,7 +98,7 @@
 
       <div class="container hero-content">
         <p class="eyebrow">Non-profit youth organisation · Larnaca, Cyprus</p>
-        <h1>Get outside.<br><span class="hl">Grow stronger</span> together.</h1>
+        <h1>Learning <span class="hl">not confined</span> within four walls.</h1>
         <p class="lead">We connect young people with better mental health through sport and the outdoors — climbing, paddling, sailing and more — and open those opportunities to everyone, including youth with disabilities and fewer opportunities.</p>
         <div class="hero-cta">
           <a class="btn btn-accent" href="#activities">Explore activities</a>
@@ -335,6 +342,10 @@
             <label for="message">Message</label>
             <textarea id="message" name="message" rows="4" required></textarea>
           </div>
+          <div class="hp" aria-hidden="true">
+            <label for="website">Leave this field empty</label>
+            <input id="website" name="website" tabindex="-1" autocomplete="off">
+          </div>
           <button class="btn btn-primary btn-block" type="submit">Send message</button>
           <p class="form-status" role="status" aria-live="polite"></p>
         </form>
@@ -346,10 +357,13 @@
   <footer class="site-footer">
     <div class="container footer-grid">
       <div>
-        <a class="brand brand-light" href="#top">
-          <img src="assets/img/logo.svg" alt="" width="36" height="36">
-          <span>Active Zone <strong>Outdoor</strong></span>
+        <a class="footer-logo" href="#top" aria-label="Active Zone Outdoor home">
+          <picture>
+            <source srcset="assets/img/logo-official-160.webp" type="image/webp">
+            <img src="assets/img/logo-official-160.png" alt="Active Zone Outdoor logo" width="96" height="96" loading="lazy">
+          </picture>
         </a>
+        <p class="slogan">“Learning not confined within four walls”</p>
         <p>Non-profit youth organisation promoting mental health, inclusion and active citizenship through outdoor sport. Larnaca, Cyprus — since 2019.</p>
       </div>
       <nav aria-label="Footer">
