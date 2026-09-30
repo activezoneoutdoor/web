@@ -1,0 +1,9 @@
+# Supabase CLI config. Only the settings this project changes are listed;
+# everything else uses the CLI defaults.
+project_id = "activezoneoutdoor-web"
+
+# The contact form is public, so visitors call this function without a
+# Supabase login. Abuse is limited inside the function (origin check,
+# honeypot, validation and per-IP rate limit).
+[functions.contact]
+verify_jwt = false
