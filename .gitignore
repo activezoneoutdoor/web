@@ -1,0 +1,18 @@
+# Supabase CLI: machine-local link state (project ref, pooler URL, CLI versions)
+supabase/.temp/
+supabase/.branches/
+
+# Local secrets (never commit Supabase or Google credentials)
+.env
+.env.*
+!.env.example
+supabase/functions/.env
+
+# Deno
+deno.lock
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
