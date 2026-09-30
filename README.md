@@ -59,7 +59,7 @@ the contact-form settings are new. Contact-form secrets are prefixed
    supabase link --project-ref drqdwpyhdprggaazaeuo
    supabase secrets set \
      CONTACT_TO_EMAIL=info@activezoneoutdoor.cy \
-     CONTACT_ALLOWED_ORIGINS=https://new-web.activezoneoutdoor.cy,https://www.activezoneoutdoor.cy,https://activezoneoutdoor.cy
+     CONTACT_ALLOWED_ORIGINS=https://www2.activezoneoutdoor.cy,https://www.activezoneoutdoor.cy,https://activezoneoutdoor.cy
    supabase functions deploy contact
    ```
 
